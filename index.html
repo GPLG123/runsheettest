@@ -3,107 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Driver Daily Report - ARCY</title>
-
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
+<title>Driver Daily Report ATR</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; }
 label { font-weight: bold; margin-top: 10px; display: block; }
-input, select, textarea { margin-top:4px; margin-bottom:10px; padding:6px; width:220px; box-sizing:border-box;}
+input[type="text"], input[type="time"], select, textarea { margin-top:4px; margin-bottom:10px; padding:6px; width:220px; box-sizing:border-box;}
 textarea { width:100%; height:40px; resize:vertical;}
 button { padding:8px 15px; margin-top:10px; cursor:pointer;}
-table { width:100%; border-collapse: collapse; margin-top:10px; font-size:14px;}
+table { width:100%; border-collapse: collapse; margin-top:20px; font-size:14px;}
 th, td { border:1px solid #888; padding:6px 8px; text-align:center;}
 th { background-color:#eee; }
+
+th:nth-child(4), td:nth-child(4) { width:120px; }
+th:nth-child(8), td:nth-child(8) { width:120px; }
+th:nth-child(10), td:nth-child(10) { width:350px; }
+
 .short { width:120px;}
 #alertExcel { margin-top:15px; background-color:#f8d7da; border:1px solid #f5c6cb; color:#721c24; padding:10px; font-weight:bold; }
-.deleteBtn { background-color:#dc3545; color:white; border:none; padding:4px 8px; cursor:pointer; border-radius:3px; }
-#totalHoursDisplay { font-weight:bold; margin-top:15px; font-size:16px; }
 </style>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
-<h2>Driver Daily Report - ARCY</h2>
+<h2>Driver Daily Report ATR</h2>
 
-<label>Vehicle:</label>
-<input type="text" id="vehicle">
+<label for="vehicle">Vehicle:</label>
+<input type="text" id="vehicle" class="short" placeholder="Vehicle">
 
-<label>Run #:</label>
-<input type="text" id="run">
+<label for="run">Run:</label>
+<input type="text" id="run" class="short" placeholder="Run #">
 
 <hr>
 
-<label>Collection and Delivery Specification:</label>
-<select id="specification">
-  <option value="">Select specification</option>
-  <option>Collection</option>
-  <option>Delivery</option>
-  <option>Collection & Delivery</option>
+<label for="specification">Collection and Delivery Specification:</label>
+<select id="specification" required>
+<option value="">Select specification</option>
+<option value="Collection">Collection</option>
+<option value="Delivery">Delivery</option>
+<option value="Collection & Delivery">Collection & Delivery</option>
 </select>
 
-<label>Collection and Delivery Point:</label>
+<label for="location">Collection and Delivery Point:</label>
 <select id="location" required>
-  <option value="">Select</option>
-  <option value="AC">AC</option>
-  <option value="ASC">ASC</option>
-  <option value="BA WC">BA WC</option>
-  <option value="BA WC 2nd">BA WC 2nd</option>
-  <option value="Ba XPS">Ba XPS</option>
-  <option value="DAI">DAI</option>
-  <option value="Dnata CP">Dnata CP</option>
-  <option value="Dnata CX">Dnata CX</option>
-  <option value="Dnata U1">Dnata U1</option>
-  <option value="Dnata U2">Dnata U2</option>
-  <option value="Dnata U3">Dnata U3</option>
-  <option value="Dnata VS/Delta">Dnata VS/Delta</option>
-  <option value="HCH">HCH</option>
-  <option value="HCH Horton">HCH Horton</option>
-  <option value="JL">JL</option>
-  <option value="Royal Mail">Royal Mail</option>
-  <option value="LANDMARK GLOBAL">LANDMARK GLOBAL</option>
-  <option value="MW">MW</option>
-  <option value="Scylla Rd">Scylla Rd</option>
-  <option value="Scylla U1">Scylla U1</option>
-  <option value="WFS 549">WFS 549</option>
-  <option value="WFS 550">WFS 550</option>
-  <option value="ECMS">ECMS</option>
-  <option value="Swissport">Swissport</option>
-  <option value="BREAK">BREAK</option>
-  <option value="manual">Other (Manual)</option>
+<option value="">Select</option>
+<option value="AC">AC</option>
+<option value="ASC">ASC</option>
+<option value="BA WC">BA WC</option>
+<option value="BA WC 2nd">BA WC 2nd</option>
+<option value="Ba XPS">Ba XPS</option>
+<option value="DAI">DAI</option>
+<option value="Dnata CP">Dnata CP</option>
+<option value="Dnata CX">Dnata CX</option>
+<option value="Dnata U1">Dnata U1</option>
+<option value="Dnata U2">Dnata U2</option>
+<option value="Dnata U3">Dnata U3</option>
+<option value="Dnata VS/Delta">Dnata VS/Delta</option>
+<option value="HCH">HCH</option>
+<option value="HCH Horton">HCH Horton</option>
+<option value="JL">JL</option>
+<option value="LG">LG</option>
+<option value="LANDMARK GLOBAL">LANDMARK GLOBAL</option>
+<option value="MW">MW</option>
+<option value="Scylla Rd">Scylla Rd</option>
+<option value="Scylla U1">Scylla U1</option>
+<option value="WFS 549">WFS 549</option>
+<option value="WFS 550">WFS 550</option>
+<option value="ECMS">ECMS</option>
+<option value="Swissport">Swissport</option>
+<option value="BREAK">BREAK</option>
+<option value="manual">Other (Manual)</option>
 </select>
 
-<input type="text" id="manualLocation" placeholder="Enter manual location" style="display:none; margin-top:6px; width: 220px;">
+<input type="text" id="manualLocation" placeholder="Enter manual location" style="display:none; margin-top:6px; width:220px;">
 
-<label>Arrival Time:</label>
+<label for="arrival">Arrival Time:</label>
 <input type="time" id="arrival">
 
-<label>Booking Time:</label>
+<label for="booking">Booking Time:</label>
 <input type="time" id="booking">
 
-<label>Departure:</label>
+<label for="departure">Departure:</label>
 <input type="time" id="departure">
 
-<label>QTY:</label>
+<label for="qty">Qty:</label>
 <input type="text" id="qty" class="short">
 
-<label>Comment:</label>
-<textarea id="comment"></textarea>
+<label for="comment">Comment:</label>
+<textarea id="comment" placeholder="Add comment"></textarea>
 
-<button id="addEntryBtn">Add Location</button>
+<button id="addEntryBtn" type="button">Add Location</button>
 
 <hr>
 
-<label>Select Date to View / Generate Excel:</label>
-<input type="date" id="filterDate">
+<label for="filterDate">Select Date to View / Generate Excel:</label>
+<input type="date" id="filterDate" class="short">
 
 <div id="alertExcel">
-⚠️ After adding all locations, click <strong>Send Excel</strong> to save report.
+⚠️ Important: After adding all locations, make sure to click <strong>Send Excel</strong> to save your daily report locally! ⚠️
 </div>
 
-<div id="totalHoursDisplay">TOTAL HOURS: 0</div>
-
-<button id="sendExcelBtn">Send Excel</button>
+<button id="sendExcelBtn" type="button">Send Excel</button>
 
 <table id="reportTable">
 <thead>
@@ -111,174 +110,174 @@ th { background-color:#eee; }
 <th>Date</th>
 <th>Vehicle</th>
 <th>Run</th>
-<th>Location</th>
-<th>Arrival</th>
-<th>Booking</th>
+<th>Collection and Delivery Point</th>
+<th>Arrival Time</th>
+<th>Booking Time</th>
 <th>Departure</th>
-<th>Specification</th>
-<th>QTY</th>
+<th>Collection and Delivery Specification</th>
+<th>Qty</th>
 <th>Comment</th>
-<th>Action</th>
+<th>Delete</th>
 </tr>
 </thead>
 <tbody></tbody>
 </table>
 
 <script>
-let dailyData = JSON.parse(localStorage.getItem('dailyData_ARCY') || "{}");
+
+const STORAGE_KEY = "ATR_dailyData";
+let dailyData = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
 const locationSelect = document.getElementById('location');
 const manualLocationInput = document.getElementById('manualLocation');
+
 locationSelect.addEventListener('change', ()=>{
   manualLocationInput.style.display = (locationSelect.value === 'manual') ? 'block' : 'none';
 });
 
-// funcții pentru calcul total hours
-function timeToMinutes(t){ if(!t) return null; const [h,m]=t.split(":").map(Number); return h*60+m; }
-function roundTo30(mins){ let r=mins%30; return (r<=15)?mins-r:mins+(30-r); }
-
-function displayTotalHours(hours){
-  document.getElementById('totalHoursDisplay').textContent = "TOTAL HOURS: "+hours.toFixed(2);
-}
-
 function loadTable(date = filterDate.value){
+
   const tbody = document.querySelector("#reportTable tbody");
   tbody.innerHTML = "";
-  const runFilter = run.value.trim();
-  if(!dailyData[date]) {
-    displayTotalHours(0);
-    return;
-  }
+  const runKey = run.value.trim();
 
-  let allArrivals=[], allDepartures=[];
+  if(!dailyData[date]) return;
 
-  Object.keys(dailyData[date]).forEach(runKey=>{
-    if(runFilter && runKey !== runFilter) return;
-    dailyData[date][runKey].forEach((entry, idx)=>{
-      if(entry.source && entry.source !== "ARCY") return;
+  Object.keys(dailyData[date]).forEach(runNum=>{
+    if(runKey && runNum!==runKey) return;
 
-      if(entry.arrival) allArrivals.push(timeToMinutes(entry.arrival));
-      if(entry.departure) allDepartures.push(timeToMinutes(entry.departure));
-
+    dailyData[date][runNum].forEach(entry=>{
       const row = tbody.insertRow();
-      const cellsData = [
-        entry.date, entry.vehicle, entry.run, entry.location,
-        entry.arrival, entry.booking, entry.departure,
-        entry.specification, entry.qty, entry.comment
-      ];
-      cellsData.forEach(val=>{
+      
+      Object.values(entry).forEach(value=>{
         const cell = row.insertCell();
-        cell.textContent = val;
-        cell.contentEditable = false;
+        cell.textContent = value;
+        cell.contentEditable = false; // ⚠️ Make table cells non-editable
       });
 
-      const actionCell = row.insertCell();
-      const delBtn = document.createElement('button');
-      delBtn.textContent = "Delete";
-      delBtn.className = "deleteBtn";
-      delBtn.onclick = ()=>{
+      const deleteCell = row.insertCell();
+      const btn = document.createElement("button");
+      btn.textContent = "❌";
+
+      btn.onclick = function(){
         if(confirm("⚠️ Atenție! Ștergerea acestui rând este permanentă. Ești sigur că vrei să ștergi această intrare?")) {
-          dailyData[date][runKey].splice(idx,1);
-          localStorage.setItem('dailyData_ARCY', JSON.stringify(dailyData));
-          loadTable(date);
+          dailyData[entry.date][entry.run] =
+            dailyData[entry.date][entry.run].filter(e => e !== entry);
+
+          if(dailyData[entry.date][entry.run].length === 0){
+            delete dailyData[entry.date][entry.run];
+          }
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyData));
+          loadTable(entry.date);
         }
       };
-      actionCell.appendChild(delBtn);
+
+      deleteCell.appendChild(btn);
     });
   });
-
-  // fallback ultima linie
-  if(allDepartures.length === 0 && tbody.rows.length){
-    const lastRow = tbody.rows[tbody.rows.length-1];
-    const depTime = lastRow.cells[6].textContent || lastRow.cells[5].textContent;
-    if(depTime) allDepartures.push(timeToMinutes(depTime));
-  }
-
-  let totalHours = 0;
-  if(allArrivals.length && allDepartures.length){
-    const start = Math.min(...allArrivals);
-    const end = Math.max(...allDepartures);
-    totalHours = roundTo30(end-start)/60;
-  }
-  window.totalHours = totalHours;
-  displayTotalHours(totalHours);
 }
 
-filterDate.addEventListener('change', ()=>loadTable(filterDate.value));
-run.addEventListener('input', ()=>loadTable(filterDate.value));
+function populateFilterDate(){
+  const dates = Object.keys(dailyData).sort();
+  if(dates.length) filterDate.value = dates[0];
+}
 
 addEntryBtn.addEventListener('click', ()=>{
   const vehicleVal = vehicle.value.trim();
   const runVal = run.value.trim();
-  const date = new Date().toISOString().split('T')[0];
+  const dateVal = new Date().toISOString().split('T')[0];
   const specificationVal = specification.value;
-  let locationVal = (locationSelect.value === 'manual') ? manualLocationInput.value.trim() : locationSelect.value;
+  let locationVal = (locationSelect.value==='manual') ? manualLocationInput.value.trim() : locationSelect.value;
   const arrivalVal = arrival.value;
   const bookingVal = booking.value;
   const departureVal = departure.value;
   const qtyVal = qty.value.trim();
   const commentVal = comment.value.trim();
-  if(!vehicleVal||!runVal||!locationVal||!specificationVal) return alert("Fill required fields");
-  if(!dailyData[date]) dailyData[date]={};
-  if(!dailyData[date][runVal]) dailyData[date][runVal]=[];
-  dailyData[date][runVal].push({
-    source: "ARCY",
-    date, vehicle: vehicleVal, run: runVal, location: locationVal,
-    arrival: arrivalVal, booking: bookingVal,
-    departure: departureVal, specification: specificationVal, qty: qtyVal, comment: commentVal
+
+  if(!vehicleVal || !runVal || !locationVal || !specificationVal){
+    alert("Please fill all required fields");
+    return;
+  }
+
+  if(!dailyData[dateVal]) dailyData[dateVal] = {};
+  if(!dailyData[dateVal][runVal]) dailyData[dateVal][runVal] = [];
+
+  dailyData[dateVal][runVal].push({
+    date: dateVal,
+    vehicle: vehicleVal,
+    run: runVal,
+    location: locationVal,
+    arrival: arrivalVal,
+    booking: bookingVal,
+    departure: departureVal,
+    specification: specificationVal,
+    qty: qtyVal,
+    comment: commentVal
   });
-  localStorage.setItem('dailyData_ARCY', JSON.stringify(dailyData));
-  loadTable(date);
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyData));
+  loadTable(dateVal);
 });
 
-sendExcelBtn.addEventListener('click', ()=>{
-  const selectedDate = filterDate.value;
-  const runFilter = run.value.trim();
-  if(!dailyData[selectedDate]) return alert("No data for date");
+filterDate.addEventListener('change', ()=>loadTable());
+run.addEventListener('input', ()=>loadTable());
 
-  let rows=[], runNames=[], vehicleRegs=[];
-  Object.keys(dailyData[selectedDate]).forEach(runKey=>{
-    if(runFilter && runKey !== runFilter) return;
-    dailyData[selectedDate][runKey].forEach(entry=>{
-      if(entry.source && entry.source !== "ARCY") return;
+sendExcelBtn.addEventListener('click', ()=>{
+
+  const dateVal = filterDate.value;
+  const runFilter = run.value.trim();
+
+  if(!dailyData[dateVal]) return alert("No data for this date");
+
+  let rows = [];
+
+  Object.keys(dailyData[dateVal]).forEach(runNum=>{
+    if(runFilter && runNum!==runFilter) return;
+    dailyData[dateVal][runNum].forEach(entry=>{
       rows.push([
-        entry.date, entry.vehicle, entry.run, entry.location,
-        entry.arrival, entry.booking, entry.departure,
-        entry.specification, entry.qty, entry.comment
+        entry.date,
+        entry.vehicle,
+        entry.run,
+        entry.location,
+        entry.arrival,
+        entry.booking,
+        entry.departure,
+        entry.specification,
+        entry.qty,
+        entry.comment
       ]);
-      if(entry.run) runNames.push(entry.run);
-      if(entry.vehicle) vehicleRegs.push(entry.vehicle);
     });
   });
 
-  if(rows.length===0) return alert("No data for selected run/date");
-
-  const uniqueRun = runNames.length ? runNames[0] : "";
-  const uniqueVehicle = vehicleRegs.length ? vehicleRegs[0] : "";
+  if(rows.length===0) return alert("No rows to export");
 
   const sheetData = [
-    ["TOTAL HOURS", window.totalHours],
-    ["Run", uniqueRun],
-    ["Vehicle Reg", uniqueVehicle],
-    [],
-    ["Date","Vehicle","Run","Location","Arrival","Booking","Departure","Specification","QTY","Comment"],
+    ["Date","Vehicle","Run","Location","Arrival","Booking","Departure","Specification","Qty","Comment"],
     ...rows
   ];
 
-  const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
+  const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
 
-  let fileName = "Driver_Report_"+selectedDate;
+  let fileName = "ATR_Driver_Report_"+dateVal;
   if(runFilter) fileName += "_Run_"+runFilter;
 
   XLSX.writeFile(wb, fileName+".xlsx");
+
 });
 
 window.onload = function(){
-  filterDate.value = new Date().toISOString().split('T')[0];
+  populateFilterDate();
+  if(!filterDate.value) filterDate.value = new Date().toISOString().split('T')[0];
+  ['arrival','booking','departure'].forEach(id=>{
+    if(!document.getElementById(id).value)
+      document.getElementById(id).value = (id==='departure')?'09:00':'08:00';
+  });
   loadTable();
 };
+
 </script>
 
 </body>
