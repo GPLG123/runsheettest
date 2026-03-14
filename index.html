@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Driver Daily Report ATR</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+label { font-weight: bold; margin-top: 10px; display: block; }
+input[type="text"], input[type="time"], select, textarea { margin-top:4px; margin-bottom:10px; padding:6px; width:220px; box-sizing:border-box;}
+textarea { width:100%; height:40px; resize:vertical;}
+button { padding:8px 15px; margin-top:10px; cursor:pointer;}
+table { width:100%; border-collapse: collapse; margin-top:20px; font-size:14px;}
+th, td { border:1px solid #888; padding:6px 8px; text-align:center;}
+th { background-color:#eee; }
+
+th:nth-child(4), td:nth-child(4) { width:120px; }
+th:nth-child(9), td:nth-child(9) { width:140px; }
+th:nth-child(10), td:nth-child(10) { width:250px; }
+
+td[contenteditable="true"]:focus { outline:2px solid #6ca0dc; background-color:#f0f8ff; }
+.short { width:120px;}
+#alertExcel { margin-top:15px; background-color:#f8d7da; border:1px solid #f5c6cb; color:#721c24; padding:10px; font-weight:bold; }
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<h2>Driver Daily Report ATR</h2>
+
+<label for="vehicle">Vehicle:</label>
+<input type="text" id="vehicle" class="short" placeholder="Vehicle">
+
+<label for="run">Run:</label>
+<input type="text" id="run" class="short" placeholder="Run #">
+
+<hr>
+
+<label for="specification">Collection and Delivery Specification:</label>
+<select id="specification" required>
+  <option value="">Select specification</option>
+  <option value="Collection Only">Collection Only</option>
+  <option value="Delivery Only">Delivery Only</option>
+  <option value="Collection and Delivery">Collection and Delivery</option>
+</select>
+
+<label for="location">Collection and Delivery Point:</label>
+<select id="location" required>
+  <option value="">Select</option>
+  <option value="AC">AC</option>
+  <option value="ASC">ASC</option>
+  <option value="BA WC">BA WC</option>
+  <option value="BA WC 2nd">BA WC 2nd</option>
+  <option value="Ba XPS">Ba XPS</option>
+  <option value="DAI">DAI</option>
+  <option value="Dnata CP">Dnata CP</option>
+  <option value="Dnata CX">Dnata CX</option>
+  <option value="Dnata U1">Dnata U1</option>
+  <option value="Dnata U2">Dnata U2</option>
+  <option value="Dnata U3">Dnata U3</option>
+  <option value="Dnata VS/Delta">Dnata VS/Delta</option>
+  <option value="HCH">HCH</option>
+  <option value="HCH Horton">HCH Horton</option>
+  <option value="JL">JL</option>
+  <option value="LG">LG</option>
+  <option value="LANDMARK GLOBAL">LANDMARK GLOBAL</option>
+  <option value="MW">MW</option>
+  <option value="Scylla Rd">Scylla Rd</option>
+  <option value="Scylla U1">Scylla U1</option>
+  <option value="WFS 549">WFS 549</option>
+  <option value="WFS 550">WFS 550</option>
+  <option value="ECMS">ECMS</option>
+  <option value="Swissport">Swissport</option>
+  <option value="BREAK">BREAK</option>
+  <option value="manual">Other (Manual)</option>
+</select>
+
+<input type="text" id="manualLocation" placeholder="Enter manual location" style="display:none; margin-top:6px; width: 220px;">
+
+<label for="arrival">Arrival Time:</label>
+<input type="time" id="arrival">
+
+<label for="booking">Booking Time:</label>
+<input type="time" id="booking">
+
+<label for="loading">Loading:</label>
+<input type="time" id="loading">
+
+<label for="departure">Departure:</label>
+<input type="time" id="departure">
+
+<label for="comment">Comment:</label>
+<textarea id="comment" placeholder="Add comment"></textarea>
+
+<button id="addEntryBtn" type="button">Add Location</button>
+
+<hr>
+
+<label for="filterDate">Select Date to View / Generate Excel:</label>
+<input type="date" id="filterDate" class="short">
+
+<div id="alertExcel">
+⚠️ Important: After adding all locations, make sure to click <strong>Send Excel</strong> to save your daily report locally! ⚠️
+</div>
+
+<button id="sendExcelBtn" type="button">Send Excel</button>
+
+<table id="reportTable">
+<thead>
+<tr>
+<th>Date</th>
+<th>Vehicle</th>
+<th>Run</th>
+<th>Collection and Delivery Point</th>
+<th>Arrival Time</th>
+<th>Booking Time</th>
+<th>Loading</th>
+<th>Departure</th>
+<th>Collection and Delivery Specification</th>
+<th>Comment</th>
+<th>Delete</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+// STORAGE ATR
+const STORAGE_KEY = "ATR_dailyData";
+
+// Data storage
+let dailyData = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+
+// Show manual location input if "Other (Manual)" selected
+const locationSelect = document.getElementById('location');
+const manualLocationInput = document.getElementById('manualLocation');
+locationSelect.addEventListener('change', ()=>{
+  manualLocationInput.style.display = (locationSelect.value === 'manual') ? 'block' : 'none';
+});
+
+// Load table
+function loadTable(date = filterDate.value){
+  const tbody = document.querySelector("#reportTable tbody");
+  tbody.innerHTML = "";
+  const runKey = run.value.trim();
+  if(!dailyData[date]) return;
+
+  Object.keys(dailyData[date]).forEach(runNum=>{
+    if(runKey && runNum!==runKey) return;
+    dailyData[date][runNum].forEach(entry=>{
+      const row = tbody.insertRow();
+      row.insertCell().textContent = entry.date;
+      row.insertCell().textContent = entry.vehicle; row.cells[1].contentEditable=true;
+      row.insertCell().textContent = entry.run; row.cells[2].contentEditable=true;
+      row.insertCell().textContent = entry.location; row.cells[3].contentEditable=true;
+      row.insertCell().textContent = entry.arrival; row.cells[4].contentEditable=true;
+      row.insertCell().textContent = entry.booking; row.cells[5].contentEditable=true;
+      row.insertCell().textContent = entry.loading; row.cells[6].contentEditable=true;
+      row.insertCell().textContent = entry.departure; row.cells[7].contentEditable=true;
+      row.insertCell().textContent = entry.specification; row.cells[8].contentEditable=true;
+      row.insertCell().textContent = entry.comment; row.cells[9].contentEditable=true;
+
+      // Delete button
+      const deleteCell = row.insertCell();
+      const btn = document.createElement("button");
+      btn.textContent = "❌";
+      btn.onclick = function(){
+        dailyData[entry.date][entry.run] =
+          dailyData[entry.date][entry.run].filter(e => e !== entry);
+        if(dailyData[entry.date][entry.run].length === 0){
+          delete dailyData[entry.date][entry.run];
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyData));
+        loadTable(entry.date);
+      };
+      deleteCell.appendChild(btn);
+    });
+  });
+}
+
+// Populate filter date
+function populateFilterDate(){
+  const dates = Object.keys(dailyData).sort();
+  if(dates.length) filterDate.value = dates[0];
+}
+
+// Add entry
+addEntryBtn.addEventListener('click', ()=>{
+  const vehicleVal = vehicle.value.trim();
+  const runVal = run.value.trim();
+  const dateVal = new Date().toISOString().split('T')[0];
+  const specificationVal = specification.value;
+  let locationVal = (locationSelect.value==='manual') ? manualLocationInput.value.trim() : locationSelect.value;
+  const arrivalVal = arrival.value;
+  const bookingVal = booking.value;
+  const loadingVal = loading.value;
+  const departureVal = departure.value;
+  const commentVal = comment.value.trim();
+
+  if(!vehicleVal || !runVal || !locationVal || !specificationVal){ alert("Please fill all required fields"); return; }
+
+  if(!dailyData[dateVal]) dailyData[dateVal] = {};
+  if(!dailyData[dateVal][runVal]) dailyData[dateVal][runVal] = [];
+
+  dailyData[dateVal][runVal].push({
+    date: dateVal,
+    vehicle: vehicleVal,
+    run: runVal,
+    location: locationVal,
+    arrival: arrivalVal,
+    booking: bookingVal,
+    loading: loadingVal,
+    departure: departureVal,
+    specification: specificationVal,
+    comment: commentVal
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyData));
+  loadTable(dateVal);
+});
+
+// Save edits automatically
+document.querySelector("#reportTable tbody").addEventListener("input", function(){
+  const dateVal = filterDate.value;
+  if(!dailyData[dateVal]) return;
+
+  const rows = document.querySelectorAll("#reportTable tbody tr");
+
+  rows.forEach((row)=>{
+    const cells = row.cells;
+    const runVal = cells[2].textContent;
+    if(!dailyData[dateVal][runVal]) return;
+
+    dailyData[dateVal][runVal].forEach(entry=>{
+      if(entry.date === cells[0].textContent){
+        entry.vehicle = cells[1].textContent;
+        entry.run = cells[2].textContent;
+        entry.location = cells[3].textContent;
+        entry.arrival = cells[4].textContent;
+        entry.booking = cells[5].textContent;
+        entry.loading = cells[6].textContent;
+        entry.departure = cells[7].textContent;
+        entry.specification = cells[8].textContent;
+        entry.comment = cells[9].textContent;
+      }
+    });
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyData));
+});
+
+// Filter table
+filterDate.addEventListener('change', ()=>loadTable());
+run.addEventListener('input', ()=>loadTable());
+
+// Export Excel
+sendExcelBtn.addEventListener('click', ()=>{
+  const dateVal = filterDate.value;
+  const runFilter = run.value.trim();
+  if(!dailyData[dateVal]) return alert("No data for this date");
+
+  let rows = [];
+  Object.keys(dailyData[dateVal]).forEach(runNum=>{
+    if(runFilter && runNum!==runFilter) return;
+    dailyData[dateVal][runNum].forEach(entry=>{
+      rows.push([
+        entry.date, entry.vehicle, entry.run, entry.location,
+        entry.arrival, entry.booking, entry.loading, entry.departure,
+        entry.specification, entry.comment
+      ]);
+    });
+  });
+
+  if(rows.length===0) return alert("No rows to export");
+
+  const sheetData = [
+    ["Date","Vehicle","Run","Location","Arrival","Booking","Loading","Departure","Specification","Comment"],
+    ...rows
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(sheetData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
+
+  let fileName = "ATR_Driver_Report_"+dateVal;
+  if(runFilter) fileName += "_Run_"+runFilter;
+  XLSX.writeFile(wb, fileName+".xlsx");
+});
+
+// Initialize
+window.onload = function(){
+  populateFilterDate();
+  if(!filterDate.value) filterDate.value = new Date().toISOString().split('T')[0];
+  ['arrival','booking','loading','departure'].forEach(id=>{
+    if(!document.getElementById(id).value)
+      document.getElementById(id).value = (id==='departure')?'09:00':'08:00';
+  });
+  loadTable();
+};
+</script>
+
+</body>
+</html>
