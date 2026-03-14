@@ -185,7 +185,7 @@ addEntryBtn.addEventListener('click', () => {
   const arrivalVal = arrival.value;
   const bookingVal = booking.value;
   const departureVal = departure.value;
-  const qtyVal = qty.value.trim() || ""; // rămâne gol dacă nu se scrie nimic
+  const qtyVal = qty.value.trim() || "";
   const commentVal = comment.value.trim();
   if (!vehicleVal || !runVal || !locationVal || !specificationVal) return alert("Fill required fields");
   if (!dailyData[date]) dailyData[date] = {};
