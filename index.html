@@ -7,7 +7,7 @@
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; }
 label { font-weight: bold; margin-top: 10px; display: block; }
-input[type="text"], input[type="time"], input[type="number"], select, textarea { margin-top:4px; margin-bottom:10px; padding:6px; width:220px; box-sizing:border-box;}
+input[type="text"], input[type="time"], select, textarea { margin-top:4px; margin-bottom:10px; padding:6px; width:220px; box-sizing:border-box;}
 textarea { width:100%; height:40px; resize:vertical;}
 button { padding:8px 15px; margin-top:10px; cursor:pointer;}
 table { width:100%; border-collapse: collapse; margin-top:20px; font-size:14px;}
@@ -86,14 +86,8 @@ td[contenteditable="true"]:focus { outline:2px solid #6ca0dc; background-color:#
 <label for="departure">Departure:</label>
 <input type="time" id="departure">
 
-<label for="qtyType">Qty Type:</label>
-<select id="qtyType" class="short">
-<option value="Units">Units</option>
-<option value="Pallets">Pallets</option>
-</select>
-
 <label for="qty">Qty:</label>
-<input type="number" id="qty" class="short" placeholder="Enter quantity">
+<input type="text" id="qty" class="short">
 
 <label for="comment">Comment:</label>
 <textarea id="comment" placeholder="Add comment"></textarea>
@@ -210,11 +204,7 @@ let locationVal = (locationSelect.value==='manual') ? manualLocationInput.value.
 const arrivalVal = arrival.value;
 const bookingVal = booking.value;
 const departureVal = departure.value;
-
-const qtyNumber = qty.value.trim();
-const qtyType = qtyType.value;
-const qtyVal = qtyNumber + " " + qtyType;
-
+const qtyVal = qty.value.trim();
 const commentVal = comment.value.trim();
 
 if(!vehicleVal || !runVal || !locationVal || !specificationVal){
