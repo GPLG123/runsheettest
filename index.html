@@ -13,12 +13,13 @@ label { font-weight: bold; margin-top: 10px; display: block; }
 input, select, textarea { margin-top:4px; margin-bottom:10px; padding:6px; width:220px; box-sizing:border-box;}
 textarea { width:100%; height:40px; resize:vertical;}
 button { padding:8px 15px; margin-top:10px; cursor:pointer;}
-table { width:100%; border-collapse: collapse; margin-top:20px; font-size:14px;}
+table { width:100%; border-collapse: collapse; margin-top:10px; font-size:14px;}
 th, td { border:1px solid #888; padding:6px 8px; text-align:center;}
 th { background-color:#eee; }
 .short { width:120px;}
 #alertExcel { margin-top:15px; background-color:#f8d7da; border:1px solid #f5c6cb; color:#721c24; padding:10px; font-weight:bold; }
 .deleteBtn { background-color:#dc3545; color:white; border:none; padding:4px 8px; cursor:pointer; border-radius:3px; }
+#totalHoursDisplay { font-weight:bold; margin-top:15px; font-size:16px; }
 </style>
 </head>
 <body>
@@ -100,6 +101,8 @@ th { background-color:#eee; }
 ⚠️ After adding all locations, click <strong>Send Excel</strong> to save report.
 </div>
 
+<div id="totalHoursDisplay">TOTAL HOURS: 0</div>
+
 <button id="sendExcelBtn">Send Excel</button>
 
 <table id="reportTable">
@@ -134,11 +137,18 @@ locationSelect.addEventListener('change', ()=>{
 function timeToMinutes(t){ if(!t) return null; const [h,m]=t.split(":").map(Number); return h*60+m; }
 function roundTo30(mins){ let r=mins%30; return (r<=15)?mins-r:mins+(30-r); }
 
+function displayTotalHours(hours){
+  document.getElementById('totalHoursDisplay').textContent = "TOTAL HOURS: "+hours.toFixed(2);
+}
+
 function loadTable(date = filterDate.value){
   const tbody = document.querySelector("#reportTable tbody");
   tbody.innerHTML = "";
   const runFilter = run.value.trim();
-  if(!dailyData[date]) return;
+  if(!dailyData[date]) {
+    displayTotalHours(0);
+    return;
+  }
 
   let allArrivals=[], allDepartures=[];
 
@@ -147,9 +157,7 @@ function loadTable(date = filterDate.value){
     dailyData[date][runKey].forEach((entry, idx)=>{
       if(entry.source && entry.source !== "ARCY") return;
 
-      // colectăm toate arrival
       if(entry.arrival) allArrivals.push(timeToMinutes(entry.arrival));
-      // colectăm departure doar dacă e completat
       if(entry.departure) allDepartures.push(timeToMinutes(entry.departure));
 
       const row = tbody.insertRow();
@@ -161,7 +169,7 @@ function loadTable(date = filterDate.value){
       cellsData.forEach(val=>{
         const cell = row.insertCell();
         cell.textContent = val;
-        cell.contentEditable = false; // non-editable
+        cell.contentEditable = false;
       });
 
       const actionCell = row.insertCell();
@@ -179,20 +187,21 @@ function loadTable(date = filterDate.value){
     });
   });
 
-  // dacă ultima linie nu are departure, folosim ultimul timp disponibil ca departure
+  // fallback ultima linie
   if(allDepartures.length === 0 && tbody.rows.length){
     const lastRow = tbody.rows[tbody.rows.length-1];
-    const depTime = lastRow.cells[6].textContent || lastRow.cells[5].textContent; // dacă departure lipseste, luam booking ca fallback
+    const depTime = lastRow.cells[6].textContent || lastRow.cells[5].textContent;
     if(depTime) allDepartures.push(timeToMinutes(depTime));
   }
 
+  let totalHours = 0;
   if(allArrivals.length && allDepartures.length){
     const start = Math.min(...allArrivals);
     const end = Math.max(...allDepartures);
-    window.totalHours = roundTo30(end-start)/60;
-  } else {
-    window.totalHours = 0;
+    totalHours = roundTo30(end-start)/60;
   }
+  window.totalHours = totalHours;
+  displayTotalHours(totalHours);
 }
 
 filterDate.addEventListener('change', ()=>loadTable(filterDate.value));
