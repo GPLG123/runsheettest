@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -36,9 +36,9 @@ th { background-color:#eee; }
 <label>Collection and Delivery Specification:</label>
 <select id="specification">
   <option value="">Select specification</option>
-  <option>Collection Only</option>
-  <option>Delivery Only</option>
-  <option>Collection and Delivery</option>
+  <option>Collection</option>
+  <option>Delivery</option>
+  <option>Collection & Delivery</option>
 </select>
 
 <label>Collection and Delivery Point:</label>
@@ -80,11 +80,11 @@ th { background-color:#eee; }
 <label>Booking Time:</label>
 <input type="time" id="booking" />
 
-<label>Loading:</label>
-<input type="time" id="loading" />
-
 <label>Departure:</label>
 <input type="time" id="departure" />
+
+<label>QTY:</label>
+<input type="number" id="qty" min="1" />
 
 <label>Comment:</label>
 <textarea id="comment"></textarea>
@@ -111,8 +111,8 @@ th { background-color:#eee; }
 <th>Location</th>
 <th>Arrival</th>
 <th>Booking</th>
-<th>Loading</th>
 <th>Departure</th>
+<th>QTY</th>
 <th>Specification</th>
 <th>Comment</th>
 <th>Action</th>
@@ -152,8 +152,8 @@ function loadTable(date = filterDate.value) {
       row.insertCell().textContent = entry.location;
       row.insertCell().textContent = entry.arrival;
       row.insertCell().textContent = entry.booking;
-      row.insertCell().textContent = entry.loading;
       row.insertCell().textContent = entry.departure;
+      row.insertCell().textContent = entry.qty;
       row.insertCell().textContent = entry.specification;
       row.insertCell().textContent = entry.comment;
 
@@ -162,7 +162,7 @@ function loadTable(date = filterDate.value) {
       delBtn.textContent = "Delete";
       delBtn.className = "deleteBtn";
       delBtn.onclick = () => {
-        if (confirm("Sunteți sigur că vreți să ștergeți acest rând?")) {
+        if (confirm("Are you sure you want to delete this row?")) {
           dailyData[date][runKey].splice(idx, 1);
           localStorage.setItem('dailyData', JSON.stringify(dailyData));
           loadTable(date);
@@ -184,16 +184,16 @@ addEntryBtn.addEventListener('click', () => {
   let locationVal = (locationSelect.value === 'manual') ? manualLocationInput.value.trim() : locationSelect.value;
   const arrivalVal = arrival.value;
   const bookingVal = booking.value;
-  const loadingVal = loading.value;
   const departureVal = departure.value;
+  const qtyVal = qty.value.trim() || ""; // leave empty if not entered
   const commentVal = comment.value.trim();
-  if (!vehicleVal || !runVal || !locationVal || !specificationVal) return alert("Fill required fields");
+  if (!vehicleVal || !runVal || !locationVal || !specificationVal) return alert("Please fill required fields");
   if (!dailyData[date]) dailyData[date] = {};
   if (!dailyData[date][runVal]) dailyData[date][runVal] = [];
   dailyData[date][runVal].push({
     date, vehicle: vehicleVal, run: runVal, location: locationVal,
-    arrival: arrivalVal, booking: bookingVal, loading: loadingVal,
-    departure: departureVal, specification: specificationVal, comment: commentVal
+    arrival: arrivalVal, booking: bookingVal, departure: departureVal,
+    qty: qtyVal, specification: specificationVal, comment: commentVal
   });
   localStorage.setItem('dailyData', JSON.stringify(dailyData));
   loadTable(date);
@@ -202,7 +202,7 @@ addEntryBtn.addEventListener('click', () => {
 sendExcelBtn.addEventListener('click', () => {
   const selectedDate = filterDate.value;
   const runFilter = run.value.trim();
-  if (!dailyData[selectedDate]) return alert("No data for date");
+  if (!dailyData[selectedDate]) return alert("No data for this date");
 
   let rows = [];
   Object.keys(dailyData[selectedDate]).forEach(runKey => {
@@ -211,7 +211,7 @@ sendExcelBtn.addEventListener('click', () => {
       if (blockedSources.some(src => entry.location?.includes(src) || entry.comment?.includes(src))) return;
       rows.push([
         entry.date, entry.vehicle, entry.run, entry.location,
-        entry.arrival, entry.booking, entry.loading, entry.departure,
+        entry.arrival, entry.booking, entry.departure, entry.qty,
         entry.specification, entry.comment
       ]);
     });
@@ -220,7 +220,7 @@ sendExcelBtn.addEventListener('click', () => {
   if (rows.length === 0) return alert("No data for selected run/date");
 
   let arrivals = rows.map(r => timeToMinutes(r[4])).filter(v => v != null);
-  let departures = rows.map(r => timeToMinutes(r[7])).filter(v => v != null);
+  let departures = rows.map(r => timeToMinutes(r[5])).filter(v => v != null);
   let totalHours = 0;
   if (arrivals.length && departures.length) {
     totalHours = roundTo30(Math.max(...departures) - Math.min(...arrivals)) / 60;
@@ -232,7 +232,7 @@ sendExcelBtn.addEventListener('click', () => {
     ["HOURLY RATE (£)", HOURLY_RATE],
     ["TOTAL COST (£)", totalCost],
     [],
-    ["Date","Vehicle","Run","Location","Arrival","Booking","Loading","Departure","Specification","Comment"],
+    ["Date","Vehicle","Run","Location","Arrival","Booking","Departure","QTY","Specification","Comment"],
     ...rows
   ];
 
