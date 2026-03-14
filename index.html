@@ -130,15 +130,27 @@ locationSelect.addEventListener('change', ()=>{
   manualLocationInput.style.display = (locationSelect.value === 'manual') ? 'block' : 'none';
 });
 
+// funcții pentru calcul total hours
+function timeToMinutes(t){ if(!t) return null; const [h,m]=t.split(":").map(Number); return h*60+m; }
+function roundTo30(mins){ let r=mins%30; return (r<=15)?mins-r:mins+(30-r); }
+
 function loadTable(date = filterDate.value){
   const tbody = document.querySelector("#reportTable tbody");
   tbody.innerHTML = "";
   const runFilter = run.value.trim();
   if(!dailyData[date]) return;
+
+  let allArrivals=[], allDepartures=[];
+
   Object.keys(dailyData[date]).forEach(runKey=>{
     if(runFilter && runKey !== runFilter) return;
     dailyData[date][runKey].forEach((entry, idx)=>{
       if(entry.source && entry.source !== "ARCY") return;
+
+      // colectăm toate arrival
+      if(entry.arrival) allArrivals.push(timeToMinutes(entry.arrival));
+      // colectăm departure doar dacă e completat
+      if(entry.departure) allDepartures.push(timeToMinutes(entry.departure));
 
       const row = tbody.insertRow();
       const cellsData = [
@@ -166,6 +178,21 @@ function loadTable(date = filterDate.value){
       actionCell.appendChild(delBtn);
     });
   });
+
+  // dacă ultima linie nu are departure, folosim ultimul timp disponibil ca departure
+  if(allDepartures.length === 0 && tbody.rows.length){
+    const lastRow = tbody.rows[tbody.rows.length-1];
+    const depTime = lastRow.cells[6].textContent || lastRow.cells[5].textContent; // dacă departure lipseste, luam booking ca fallback
+    if(depTime) allDepartures.push(timeToMinutes(depTime));
+  }
+
+  if(allArrivals.length && allDepartures.length){
+    const start = Math.min(...allArrivals);
+    const end = Math.max(...allDepartures);
+    window.totalHours = roundTo30(end-start)/60;
+  } else {
+    window.totalHours = 0;
+  }
 }
 
 filterDate.addEventListener('change', ()=>loadTable(filterDate.value));
@@ -221,6 +248,7 @@ sendExcelBtn.addEventListener('click', ()=>{
   const uniqueVehicle = vehicleRegs.length ? vehicleRegs[0] : "";
 
   const sheetData = [
+    ["TOTAL HOURS", window.totalHours],
     ["Run", uniqueRun],
     ["Vehicle Reg", uniqueVehicle],
     [],
