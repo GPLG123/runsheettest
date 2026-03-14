@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -162,7 +162,7 @@ function loadTable(date = filterDate.value) {
       delBtn.textContent = "Delete";
       delBtn.className = "deleteBtn";
       delBtn.onclick = () => {
-        if (confirm("Are you sure you want to delete this row?")) {
+        if (confirm("Sunteți sigur că vreți să ștergeți acest rând?")) {
           dailyData[date][runKey].splice(idx, 1);
           localStorage.setItem('dailyData', JSON.stringify(dailyData));
           loadTable(date);
@@ -185,9 +185,9 @@ addEntryBtn.addEventListener('click', () => {
   const arrivalVal = arrival.value;
   const bookingVal = booking.value;
   const departureVal = departure.value;
-  const qtyVal = qty.value.trim() || ""; // leave empty if not entered
+  const qtyVal = qty.value.trim() || ""; // rămâne gol dacă nu se scrie nimic
   const commentVal = comment.value.trim();
-  if (!vehicleVal || !runVal || !locationVal || !specificationVal) return alert("Please fill required fields");
+  if (!vehicleVal || !runVal || !locationVal || !specificationVal) return alert("Fill required fields");
   if (!dailyData[date]) dailyData[date] = {};
   if (!dailyData[date][runVal]) dailyData[date][runVal] = [];
   dailyData[date][runVal].push({
@@ -202,7 +202,7 @@ addEntryBtn.addEventListener('click', () => {
 sendExcelBtn.addEventListener('click', () => {
   const selectedDate = filterDate.value;
   const runFilter = run.value.trim();
-  if (!dailyData[selectedDate]) return alert("No data for this date");
+  if (!dailyData[selectedDate]) return alert("No data for date");
 
   let rows = [];
   Object.keys(dailyData[selectedDate]).forEach(runKey => {
