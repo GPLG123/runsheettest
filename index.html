@@ -42,37 +42,37 @@ th { background-color:#eee; }
 </select>
 
 <label>Collection and Delivery Point:</label>
-<select id="location" required>
+<select id="location">
   <option value="">Select</option>
-  <option value="AC">AC</option>
-  <option value="ASC">ASC</option>
-  <option value="BA WC">BA WC</option>
-  <option value="BA WC 2nd">BA WC 2nd</option>
-  <option value="Ba XPS">Ba XPS</option>
-  <option value="DAI">DAI</option>
-  <option value="Dnata CP">Dnata CP</option>
-  <option value="Dnata CX">Dnata CX</option>
-  <option value="Dnata U1">Dnata U1</option>
-  <option value="Dnata U2">Dnata U2</option>
-  <option value="Dnata U3">Dnata U3</option>
-  <option value="Dnata VS/Delta">Dnata VS/Delta</option>
-  <option value="HCH">HCH</option>
-  <option value="HCH Horton">HCH Horton</option>
-  <option value="JL">JL</option>
- <option value="Royal Mail">Royal Mail</option>
-  <option value="LANDMARK GLOBAL">LANDMARK GLOBAL</option>
-  <option value="MW">MW</option>
-  <option value="Scylla Rd">Scylla Rd</option>
-  <option value="Scylla U1">Scylla U1</option>
-  <option value="WFS 549">WFS 549</option>
-  <option value="WFS 550">WFS 550</option>
-  <option value="ECMS">ECMS</option>
-  <option value="Swissport">Swissport</option>
-  <option value="BREAK">BREAK</option>
+  <option>AC</option>
+  <option>ASC</option>
+  <option>BA WC</option>
+  <option>BA WC 2nd</option>
+  <option>Ba XPS</option>
+  <option>DAI</option>
+  <option>Dnata CP</option>
+  <option>Dnata CX</option>
+  <option>Dnata U1</option>
+  <option>Dnata U2</option>
+  <option>Dnata U3</option>
+  <option>Dnata VS/Delta</option>
+  <option>HCH</option>
+  <option>HCH Horton</option>
+  <option>JL</option>
+  <option>Royal Mail</option>
+  <option>LANDMARK GLOBAL</option>
+  <option>MW</option>
+  <option>Scylla Rd</option>
+  <option>Scylla U1</option>
+  <option>WFS 549</option>
+  <option>WFS 550</option>
+  <option>ECMS</option>
+  <option>Swissport</option>
+  <option>BREAK</option>
   <option value="manual">Other (Manual)</option>
 </select>
 
-<input type="text" id="manualLocation" placeholder="Enter manual location" style="display:none; margin-top:6px; width: 220px;" />
+<input type="text" id="manualLocation" placeholder="Enter manual location" style="display:none; width:220px;">
 
 <label>Arrival Time:</label>
 <input type="time" id="arrival" />
@@ -84,7 +84,7 @@ th { background-color:#eee; }
 <input type="time" id="departure" />
 
 <label>QTY:</label>
-<input type="text" id="qty" placeholder="Enter QTY (e.g., 5 pallets)" />
+<input type="text" id="qty" placeholder="Enter QTY (optional)" />
 
 <label>Comment:</label>
 <textarea id="comment"></textarea>
@@ -97,7 +97,7 @@ th { background-color:#eee; }
 <input type="date" id="filterDate" />
 
 <div id="alertExcel">
-⚠️ After adding all locations, click <strong>Send Excel</strong> to save report.
+⚠️ After adding all locations click <strong>Send Excel</strong>
 </div>
 
 <button id="sendExcelBtn">Send Excel</button>
@@ -122,29 +122,38 @@ th { background-color:#eee; }
 </table>
 
 <script>
+
 const HOURLY_RATE = 37.5;
+
 let dailyData = JSON.parse(localStorage.getItem('dailyData') || "{}");
-const blockedSources = ["gplgrunsheetARCY","gplgrunsheetATR"];
 
 const locationSelect = document.getElementById('location');
 const manualLocationInput = document.getElementById('manualLocation');
+
 locationSelect.addEventListener('change', () => {
   manualLocationInput.style.display = (locationSelect.value === 'manual') ? 'block' : 'none';
 });
 
-function timeToMinutes(t) { if(!t) return null; const [h,m] = t.split(":").map(Number); return h * 60 + m; }
-function roundTo30(mins) { let r = mins % 30; return (r <= 15) ? mins - r : mins + (30 - r); }
+function timeToMinutes(t){
+  if(!t) return null;
+  const [h,m] = t.split(":").map(Number);
+  return h*60+m;
+}
 
-function loadTable(date = filterDate.value) {
+/* ROUND TO NEAREST 30 MINUTES WITH 15-MINUTE MARGIN */
+function roundTo30(mins){
+  let r = mins % 30;
+  return (r < 15) ? mins - r : mins + (30 - r);
+}
+
+function loadTable(date = filterDate.value){
   const tbody = document.querySelector("#reportTable tbody");
-  tbody.innerHTML = "";
+  tbody.innerHTML="";
   const runFilter = run.value.trim();
-  if (!dailyData[date]) return;
-  Object.keys(dailyData[date]).forEach(runKey => {
-    if (runFilter && runKey !== runFilter) return;
-    dailyData[date][runKey].forEach((entry, idx) => {
-      if (blockedSources.some(src => entry.location?.includes(src) || entry.comment?.includes(src))) return;
-
+  if(!dailyData[date]) return;
+  Object.keys(dailyData[date]).forEach(runKey=>{
+    if(runFilter && runKey !== runFilter) return;
+    dailyData[date][runKey].forEach((entry,idx)=>{
       const row = tbody.insertRow();
       row.insertCell().textContent = entry.date;
       row.insertCell().textContent = entry.vehicle;
@@ -160,95 +169,107 @@ function loadTable(date = filterDate.value) {
       const actionCell = row.insertCell();
       const delBtn = document.createElement('button');
       delBtn.textContent = "Delete";
-      delBtn.className = "deleteBtn";
-      delBtn.onclick = () => {
-        if (confirm("Sunteți sigur că vreți să ștergeți acest rând?")) {
-          dailyData[date][runKey].splice(idx, 1);
-          localStorage.setItem('dailyData', JSON.stringify(dailyData));
-          loadTable(date);
-        }
+      delBtn.className="deleteBtn";
+      delBtn.onclick = ()=>{
+        dailyData[date][runKey].splice(idx,1);
+        localStorage.setItem('dailyData',JSON.stringify(dailyData));
+        loadTable(date);
       };
       actionCell.appendChild(delBtn);
     });
   });
 }
 
-filterDate.addEventListener('change', () => loadTable(filterDate.value));
-run.addEventListener('input', () => loadTable(filterDate.value));
+filterDate.addEventListener('change',()=>loadTable(filterDate.value));
+run.addEventListener('input',()=>loadTable(filterDate.value));
 
-addEntryBtn.addEventListener('click', () => {
+addEntryBtn.addEventListener('click',()=>{
   const vehicleVal = vehicle.value.trim();
   const runVal = run.value.trim();
   const date = new Date().toISOString().split('T')[0];
   const specificationVal = specification.value;
-  let locationVal = (locationSelect.value === 'manual') ? manualLocationInput.value.trim() : locationSelect.value;
+  let locationVal = (locationSelect.value==='manual') ? manualLocationInput.value.trim() : locationSelect.value;
   const arrivalVal = arrival.value;
   const bookingVal = booking.value;
   const departureVal = departure.value;
   const qtyVal = qty.value.trim() || "";
   const commentVal = comment.value.trim();
-  if (!vehicleVal || !runVal || !locationVal || !specificationVal) return alert("Fill required fields");
-  if (!dailyData[date]) dailyData[date] = {};
-  if (!dailyData[date][runVal]) dailyData[date][runVal] = [];
+
+  if(!vehicleVal || !runVal || !locationVal || !specificationVal) return alert("Fill required fields");
+
+  if(!dailyData[date]) dailyData[date]={};
+  if(!dailyData[date][runVal]) dailyData[date][runVal]=[];
+
   dailyData[date][runVal].push({
-    date, vehicle: vehicleVal, run: runVal, location: locationVal,
-    arrival: arrivalVal, booking: bookingVal, departure: departureVal,
-    qty: qtyVal, specification: specificationVal, comment: commentVal
+    date, vehicle:vehicleVal, run:runVal, location:locationVal,
+    arrival:arrivalVal, booking:bookingVal, departure:departureVal,
+    qty:qtyVal, specification:specificationVal, comment:commentVal
   });
-  localStorage.setItem('dailyData', JSON.stringify(dailyData));
+
+  localStorage.setItem('dailyData',JSON.stringify(dailyData));
   loadTable(date);
 });
 
-sendExcelBtn.addEventListener('click', () => {
+sendExcelBtn.addEventListener('click',()=>{
   const selectedDate = filterDate.value;
   const runFilter = run.value.trim();
-  if (!dailyData[selectedDate]) return alert("No data for date");
+  if(!dailyData[selectedDate]) return alert("No data for date");
 
-  let rows = [];
-  Object.keys(dailyData[selectedDate]).forEach(runKey => {
-    if (runFilter && runKey !== runFilter) return;
-    dailyData[selectedDate][runKey].forEach(entry => {
-      if (blockedSources.some(src => entry.location?.includes(src) || entry.comment?.includes(src))) return;
+  let rows=[];
+  Object.keys(dailyData[selectedDate]).forEach(runKey=>{
+    if(runFilter && runKey!==runFilter) return;
+    dailyData[selectedDate][runKey].forEach(entry=>{
       rows.push([
         entry.date, entry.vehicle, entry.run, entry.location,
-        entry.arrival, entry.booking, entry.departure, entry.qty,
-        entry.specification, entry.comment
+        entry.arrival, entry.booking, entry.departure,
+        entry.qty, entry.specification, entry.comment
       ]);
     });
   });
 
-  if (rows.length === 0) return alert("No data for selected run/date");
+  if(rows.length===0) return alert("No data");
 
-  let arrivals = rows.map(r => timeToMinutes(r[4])).filter(v => v != null);
-  let departures = rows.map(r => timeToMinutes(r[5])).filter(v => v != null);
-  let totalHours = 0;
-  if (arrivals.length && departures.length) {
-    totalHours = roundTo30(Math.max(...departures) - Math.min(...arrivals)) / 60;
+  /* CALCULATE TOTAL HOURS FROM EARLIEST TO LATEST TIME */
+  let allTimes = [];
+  rows.forEach(r=>{
+    let arrival = timeToMinutes(r[4]);
+    let departure = timeToMinutes(r[6]);
+    if(arrival !== null) allTimes.push(arrival);
+    if(departure !== null) allTimes.push(departure);
+  });
+
+  let totalMinutes = 0;
+  if(allTimes.length){
+    let earliestTime = Math.min(...allTimes);
+    let latestTime = Math.max(...allTimes);
+    totalMinutes = latestTime - earliestTime;
+    totalMinutes = roundTo30(totalMinutes);
   }
+  let totalHours = totalMinutes / 60;
   let totalCost = totalHours * HOURLY_RATE;
 
-  const sheetData = [
-    ["TOTAL HOURS", totalHours],
-    ["HOURLY RATE (£)", HOURLY_RATE],
-    ["TOTAL COST (£)", totalCost],
+  const sheetData=[
+    ["TOTAL HOURS",totalHours],
+    ["HOURLY RATE (£)",HOURLY_RATE],
+    ["TOTAL COST (£)",totalCost],
     [],
     ["Date","Vehicle","Run","Location","Arrival","Booking","Departure","QTY","Specification","Comment"],
     ...rows
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
-  ws["B1"].z = "0.00"; ws["B2"].z = "£0.00"; ws["B3"].z = "£0.00";
+  ws["B1"].z="0.00"; ws["B2"].z="£0.00"; ws["B3"].z="£0.00";
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
+  XLSX.utils.book_append_sheet(wb,ws,"Daily Report");
 
   let fileName = `Driver_Report_${selectedDate}`;
-  if (runFilter) fileName += `_Run_${runFilter}`;
-  XLSX.writeFile(wb, fileName + ".xlsx");
+  if(runFilter) fileName += `_Run_${runFilter}`;
+  XLSX.writeFile(wb,fileName+".xlsx");
 });
 
-window.onload = function () {
-  filterDate.value = new Date().toISOString().split('T')[0];
+window.onload=function(){
+  filterDate.value=new Date().toISOString().split('T')[0];
   loadTable();
 };
 </script>
